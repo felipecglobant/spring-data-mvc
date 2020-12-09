@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+  <meta charset="UTF-8">
+  <title>Error</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+</head>
+<body>
+  <div class="container-fluid px-4 py-4">
+
+    <div class="row">
+      <div class="col-10"></div>
+      <div class="col-2 text-right">
+        <div sec:authorize="isAuthenticated()" class="align-text-top form-group">
+          <form th:action="@{/logout}" method="post" class="form-inline">
+            <label><strong> @front<span sec:authentication="name"></span></strong></label>
+            <input type="submit" class="btn link form-control" value="[Logout]"/>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <div class="alert alert-danger text-center" role="alert">
+          <strong>Sorry, but something were wrong...</strong>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
