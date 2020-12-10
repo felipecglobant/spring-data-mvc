@@ -12,7 +12,7 @@ pipeline {
                 echo '**** Building the app ****'
                 echo 'Checking for java version:'
                 sh 'java -version'
-                sh './gradlew build'
+                sh './gradlew clean build'
             }
         }
 
