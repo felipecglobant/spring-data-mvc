@@ -26,7 +26,13 @@ pipeline {
             steps {
                 echo '**** Deploying the app ****'
                 sh 'if pgrep -f "api.data-0.0.1-SNAPSHOT.war"; then  pkill -f "api.data-0.0.1-SNAPSHOT.war"; fi'
-                sh 'nohup java -jar build/libs/api.data-0.0.1-SNAPSHOT.war &'
+                //sh 'nohup java -jar build/libs/api.data-0.0.1-SNAPSHOT.war & sleep 2'
+                script{
+                    withEnv(['JENKINS_NODE_COOKIE=dontkill']) {
+                        sh "nohup java -jar build/libs/api.data-0.0.1-SNAPSHOT.war &"
+                    }
+                }
+                sh 'sleep 2'
             }
         }
     }
