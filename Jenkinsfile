@@ -5,19 +5,20 @@ pipeline {
     stages {
         stage('build') {
             steps {
-                echo 'building the app'
+                echo 'Building the app'
+                sh './gradlew build'
             }
         }
 
         stage('test') {
             steps {
-                echo 'testign the app'
+                echo 'Testing the app....'
             }
         }
 
         stage('deploy') {
             steps {
-                echo 'deploying the app'
+                echo 'Deploying the app'
             }
         }
     }
