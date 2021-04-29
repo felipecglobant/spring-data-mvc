@@ -1,64 +1,104 @@
 package com.exercise.api.data.services;
 
 import com.exercise.api.data.domain.Teacher;
+import com.exercise.api.data.domain.TeacherList;
 import com.exercise.api.data.repositories.TeacherRepository;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import static com.exercise.api.data.helpers.BatchStrategy.COMPLETABLE_FUTURE;
+import static com.exercise.api.data.helpers.BatchStrategy.EXECUTOR_SERVICE;
+import static com.exercise.api.data.helpers.BatchStrategy.SEQUENTIAL;
 import static com.exercise.api.data.helpers.Utils.delay;
 import static com.exercise.api.data.helpers.Utils.log;
 
 @Service
 public class TeacherService extends AbstractService<Teacher, TeacherRepository> {
 
+    @Value("${spring.datasource.maxActive}")
+    private int databaseConnections;
+
     @Autowired
     public TeacherService(TeacherRepository repository){
         this.repository = repository;
     }
 
-    // (1): operation_1 and operation_2 before operation_3
-    // (2): operation_1 independent from operation_2
     public Optional<Teacher> create(Teacher teacher){
-        CompletableFuture<Boolean> op1 = CompletableFuture.supplyAsync(() -> operation1(teacher));
-        CompletableFuture<Boolean> op2 = CompletableFuture.supplyAsync(() -> operation2(teacher));
-
-        Optional<Teacher> optionalEmpty = Optional.empty();
-
-        return op1.thenCombine(op2, (_op1, _op2) -> _op1 && _op2)
-                  .thenApply((op_results) -> {
-                       if (op_results)
-                           return operation3(teacher);
-                       else
-                           return optionalEmpty;
-                   })
-                  .join();
+        return Optional.of(saveTeacher(teacher));
     }
 
-    private boolean operation1(Teacher object){
-        log("[op1] init saving teacher " + object.getName());
+    public Optional<TeacherList> createBatch(TeacherList teacherList, String strategy) {
+        List<Teacher> teachers = teacherList.getTeachers();
+        if (strategy.equals(SEQUENTIAL)) {
+            teachers = teachers.stream()
+                               .map((teacher) -> saveTeacher(teacher))
+                               .collect(Collectors.toList());
+        }
+        else if (strategy.equals(EXECUTOR_SERVICE)) {
+            ExecutorService executorService = Executors.newFixedThreadPool(threadsNumber(teachers.size()));
+            List<Future<Teacher>> futureTeachers = teachers.stream()
+                                                           .map( (teacher) -> executorService.submit(() -> saveTeacher(teacher) ))
+                                                           .collect(Collectors.toList());
+
+            teachers = futureTeachers.stream()
+                                     .map(teacherFuture -> {
+                                        try {
+                                            return teacherFuture.get();
+                                        }
+                                        catch (Exception e) {
+                                            System.out.println("Exception: " + e.getMessage() );
+                                            return null;
+                                        }})
+                                     .collect(Collectors.toList());
+
+            executorService.shutdown();
+        }
+        else if (strategy.equals(COMPLETABLE_FUTURE)){
+            List<CompletableFuture<Teacher>> compFutureTeachers = teachers.stream()
+                .map( (teacher) -> CompletableFuture.supplyAsync(() -> saveTeacher(teacher) ))
+                .collect(Collectors.toList());
+
+            teachers = compFutureTeachers.stream()
+                                         .map(CompletableFuture::join)
+                                         .collect(Collectors.toList());
+        }
+        else {
+            teachers = Collections.emptyList();
+        }
+        teacherList.setTeachers(teachers);
+
+        return  Optional.of(teacherList);
+    }
+
+    private Teacher saveTeacher(Teacher teacher){
+        log("init saving teacher " + teacher.getName());
         delay(2000);
-        log("[op1] finish saving teacher " + object.getName());
-
-        return true;
-    }
-
-    private boolean operation2(Teacher object){
-        log("[op2] init saving teacher " + object.getName());
-        delay(1000);
-        log("[op2] finish saving teacher " + object.getName());
-
-        return true;
-    }
-
-    private Optional<Teacher> operation3(Teacher teacher){
-        log("[op3] init saving teacher " + teacher.getName());
-        delay(1000);
         Teacher savedTeacher = repository.save(teacher);
-        log("[op3] finish saving teacher " + teacher.getName());
+        log("finish saving teacher " + teacher.getName());
 
-        return Optional.of(savedTeacher);
+        return savedTeacher;
+    }
+
+    private int threadsNumber(int collectionNumber) {
+        int processorsNumber = Runtime.getRuntime().availableProcessors();
+        int threadsNumber = Math.min(collectionNumber, Math.min(processorsNumber, databaseConnections));
+
+        log("Processors number: " + processorsNumber);
+        log("Database connections: " + databaseConnections);
+        log("Records number: " + collectionNumber);
+        log("Threads number: " + threadsNumber);
+
+        return threadsNumber;
     }
 }
