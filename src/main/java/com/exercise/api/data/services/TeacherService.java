@@ -17,9 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import static com.exercise.api.data.helpers.BatchStrategy.COMPLETABLE_FUTURE;
-import static com.exercise.api.data.helpers.BatchStrategy.EXECUTOR_SERVICE;
-import static com.exercise.api.data.helpers.BatchStrategy.SEQUENTIAL;
+import static com.exercise.api.data.helpers.BatchStrategy.*;
 import static com.exercise.api.data.helpers.Utils.delay;
 import static com.exercise.api.data.helpers.Utils.log;
 
@@ -39,6 +37,7 @@ public class TeacherService extends AbstractService<Teacher, TeacherRepository> 
     }
 
     public Optional<TeacherList> createBatch(TeacherList teacherList, String strategy) {
+        log("Strategy used: " + strategy);
         List<Teacher> teachers = teacherList.getTeachers();
         if (strategy.equals(SEQUENTIAL)) {
             teachers = teachers.stream()
@@ -72,6 +71,11 @@ public class TeacherService extends AbstractService<Teacher, TeacherRepository> 
             teachers = compFutureTeachers.stream()
                                          .map(CompletableFuture::join)
                                          .collect(Collectors.toList());
+        }
+        else if (strategy.equals(PARALLEL_STREAM)){
+            teachers = teachers.parallelStream()
+                               .map((teacher) -> saveTeacher(teacher))
+                               .collect(Collectors.toList());
         }
         else {
             teachers = Collections.emptyList();
