@@ -5,6 +5,7 @@ import com.exercise.api.data.domain.TeacherList;
 import com.exercise.api.data.repositories.TeacherRepository;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -65,12 +66,19 @@ public class TeacherService extends AbstractService<Teacher, TeacherRepository> 
         }
         else if (strategy.equals(COMPLETABLE_FUTURE)){
             List<CompletableFuture<Teacher>> compFutureTeachers = teachers.stream()
-                .map( (teacher) -> CompletableFuture.supplyAsync(() -> saveTeacher(teacher) ))
-                .collect(Collectors.toList());
+                                                                          .map(teacher -> CompletableFuture.supplyAsync(() -> saveTeacher(teacher))
+                                                                                                           .exceptionally(e -> {
+                                                                                                              log("Exception caught: " + e.getMessage());
+                                                                                                              return null;
+                                                                                                           }))
+                                                                          .collect(Collectors.toList());
 
-            teachers = compFutureTeachers.stream()
-                                         .map(CompletableFuture::join)
-                                         .collect(Collectors.toList());
+            CompletableFuture<Void> completedCompFuture =  CompletableFuture.allOf(compFutureTeachers.toArray(new CompletableFuture[compFutureTeachers.size()]));
+            teachers = completedCompFuture.thenApply(v -> compFutureTeachers.stream()
+                                                                            .map(CompletableFuture::join)
+                                                                            .filter(Objects::nonNull)
+                                                                            .collect(Collectors.toList()))
+                                          .join();
         }
         else if (strategy.equals(PARALLEL_STREAM)){
             teachers = teachers.parallelStream()
