@@ -11,12 +11,12 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping(value = ConstantURL.STUDENTS, produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-public class StudentsController {
+public class StudentController {
 
     private final StudentService studentService;
 
     @Autowired
-    public StudentsController(StudentService studentService) {
+    public StudentController(StudentService studentService) {
         this.studentService = studentService;
     }
 

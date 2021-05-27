@@ -46,9 +46,9 @@ public class TeacherController {
     }
 
     @PutMapping("/{id}")
-    public Optional<Teacher> updateTeacher(@RequestBody Teacher student, @PathVariable Long id){
-        student.setId(id);
-        return teacherService.update(student);
+    public Optional<Teacher> updateTeacher(@RequestBody Teacher teacher, @PathVariable Long id){
+        teacher.setId(id);
+        return teacherService.update(teacher);
     }
 
     @DeleteMapping("/{id}")

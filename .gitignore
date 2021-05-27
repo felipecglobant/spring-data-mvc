@@ -32,3 +32,5 @@ build/
 
 .gradle
 nohup.out
+
+.DS_Store

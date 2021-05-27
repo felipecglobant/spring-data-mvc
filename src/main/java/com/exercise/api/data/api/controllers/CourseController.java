@@ -1,16 +1,18 @@
 package com.exercise.api.data.api.controllers;
 
+import com.exercise.api.data.domain.Course;
 import com.exercise.api.data.helpers.ConstantURL;
-import com.exercise.api.data.domain.Course;;
 import com.exercise.api.data.services.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping(ConstantURL.COURSES)
+@RequestMapping(ConstantURL.COURSE)
 public class CourseController {
 
     private final CourseService courseService;
@@ -21,28 +23,25 @@ public class CourseController {
     }
 
     @GetMapping("")
-    public List<Course> courses(@PathVariable Long teacher_id){
-        return courseService.getAllByTeacher(teacher_id);
-    }
-
-    @PostMapping("")
-    public Optional<Course> createCourse(@PathVariable Long teacher_id, @Validated @RequestBody Course course){
-        return courseService.persistByTeacher(course, teacher_id);
+    public List<Course> courses(){
+        return courseService.getAll();
     }
 
     @GetMapping("/{id}")
-    public Optional<Course> getCourse(@PathVariable Long teacher_id, @PathVariable Long id){
-        return courseService.getByTeacher(id, teacher_id);
+    public Optional<Course> getCourse(@PathVariable Long id){
+        return courseService.get(id);
     }
 
-    @PutMapping("/{id}")
-    public Optional<Course> updateCourse(@RequestBody Course course, @PathVariable Long teacher_id, @PathVariable Long id){
-        course.setId(id);
-        return courseService.persistByTeacher(course, teacher_id);
+    @PostMapping("/{id}" + ConstantURL.COURSE_REGISTRATION)
+    public Map registerStudent(@PathVariable Long id, @PathVariable Long student_id){
+        courseService.registerStudent(id, student_id);
+        return Collections.singletonMap("status", "OK");
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteStudent(@PathVariable Long teacher_id, @PathVariable Long id){
-        courseService.removeByTeacher(id, teacher_id);
+    @DeleteMapping("/{id}" + ConstantURL.COURSE_REGISTRATION)
+    public Map unregisterStudent(@PathVariable Long id, @PathVariable Long student_id){
+        courseService.unregisterStudent(id, student_id);
+        return Collections.singletonMap("status", "OK");
     }
+
 }

@@ -34,9 +34,12 @@ public class CourseService extends AbstractService<Course, CourseRepository> {
         if (teacherOptional.isPresent()){
             Teacher teacher = teacherOptional.get();
             course.setTeacher(teacher);
-            teacher.addCourse(course);
+            boolean alreadyAssigned = teacher.getCourses()
+                                             .stream()
+                                             .anyMatch(c -> c.getId().equals(course.getId()));
+            if (!alreadyAssigned)
+                teacher.addCourse(course);
             repository.save(course);
-            teacherRepository.save(teacher);
 
             return Optional.of(course);
         }

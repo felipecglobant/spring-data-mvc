@@ -27,6 +27,10 @@ public abstract class ControllerTest {
     @Autowired
     protected TestRestTemplate restTemplate;
 
+    protected TestRestTemplate restTemplateAuth() {
+        return restTemplate.withBasicAuth("api_user", "password");
+    }
+
     protected URI buildURI(Map<String, String> template, String ...path) throws URISyntaxException {
         return  UriComponentsBuilder.newInstance()
                 .scheme(hostScheme)
@@ -34,7 +38,8 @@ public abstract class ControllerTest {
                 .port(hostPort)
                 .pathSegment(path)
                 .buildAndExpand(template)
-                .toUri();
+                .toUri()
+                .normalize();
     }
 
     protected URI buildURI(String ...path) throws URISyntaxException {
