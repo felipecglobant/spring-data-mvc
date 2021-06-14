@@ -9,6 +9,7 @@ plugins {
     id "io.freefair.lombok" version "5.3.0"
     id 'war'
     id 'jacoco'
+    id 'info.solidsoft.pitest' version '1.5.1'
 }
 
 repositories {
@@ -65,9 +66,11 @@ war {
 
 test {
     finalizedBy jacocoTestReport // report is always generated after tests run
+    finalizedBy 'pitest'
 }
 jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
+    finalizedBy jacocoTestCoverageVerification
 }
 
 jacoco {
@@ -79,7 +82,8 @@ jacocoTestCoverageVerification {
     violationRules {
         rule {
             limit {
-                minimum = 1
+                minimum = 0.6
+                counter = 'LINE'
             }
         }
     }
@@ -90,4 +94,8 @@ test {
     testLogging {
         events "passed", "skipped", "failed"
     }
+}
+
+pitest {
+    junit5PluginVersion = '0.12'
 }
