@@ -12,13 +12,18 @@ pipeline {
                 echo '**** Building the app ****'
                 echo 'Checking for java version:'
                 sh 'java -version'
-                sh './gradlew clean build'
+                sh './gradlew clean build -x test'
             }
         }
 
         stage('test') {
             steps {
-                echo '**** Testing the app.... ****'
+                echo '**** Starting with the tests.... ****'
+                sh './gradlew test'
+                echo '**** Running coverage analysis.... ****'
+                sh './gradlew jacocoTestReport'
+                echo '**** Executing mutation tests with pitest.... ****'
+                sh './gradlew pitest'
             }
         }
 
