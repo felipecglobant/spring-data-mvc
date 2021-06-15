@@ -82,7 +82,7 @@ jacocoTestCoverageVerification {
     violationRules {
         rule {
             limit {
-                minimum = 0.7
+                minimum = 0.8
                 counter = 'LINE'
             }
         }
@@ -98,4 +98,5 @@ test {
 
 pitest {
     junit5PluginVersion = '0.12'
+    outputFormats = ['XML', 'HTML']
 }

@@ -20,10 +20,27 @@ pipeline {
             steps {
                 echo '**** Starting with the tests.... ****'
                 sh './gradlew test'
+                junit "build/test-results/test/*.xml"
+
                 echo '**** Running coverage analysis.... ****'
-                sh './gradlew jacocoTestReport'
+                jacoco(
+                      exclusionPattern : '**/*Test.class',
+                      minimumLineCoverage: '95',
+                      maximumLineCoverage: '99'
+                )
+                //sh './gradlew jacocoTestReport'
+                sh './gradlew jacocoTestCoverageVerification'
+
                 echo '**** Executing mutation tests with pitest.... ****'
                 sh './gradlew pitest'
+
+                pitmutation(
+                  killRatioMustImprove: false,
+                  minimumKillRatio:     50.0,
+                  mutationStatsFile:   'build/reports/pitest/**/*.xml'
+                )
+
+
             }
         }
 
