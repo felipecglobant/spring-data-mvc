@@ -25,7 +25,7 @@ pipeline {
                 echo '**** Running coverage analysis.... ****'
                 jacoco(
                       exclusionPattern : '**/*Test.class',
-                      minimumLineCoverage: '95',
+                      minimumLineCoverage: '60',
                       maximumLineCoverage: '99'
                 )
                 //sh './gradlew jacocoTestReport'
@@ -39,8 +39,6 @@ pipeline {
                   minimumKillRatio:     50.0,
                   mutationStatsFile:   'build/reports/pitest/**/*.xml'
                 )
-
-
             }
         }
 
