@@ -66,12 +66,12 @@ class TeacherControllerUnitTest {
 
         // when
         Optional<Teacher> optionalCreatedTeacher = controller.createTeachers(teacher);
-        Teacher createdTeacher = optionalCreatedTeacher.get();
 
         // then
         verify(teacherService, times(1)).create(teacher);
         assertThat(optionalCreatedTeacher.isPresent(), is(true));
-        assertThat(createdTeacher, samePropertyValuesAs(teacher));
+
+        assertThat(optionalCreatedTeacher.get(), samePropertyValuesAs(teacher));
     }
 
     @Test
